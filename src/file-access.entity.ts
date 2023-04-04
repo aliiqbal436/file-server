@@ -5,6 +5,10 @@ export type FileAccessDocument = FileAccess & Document;
 export class FileAccess {
   @Prop({ required: true })
   userId: MongooseSchema.Types.ObjectId;
+  @Prop({ required: false })
+  accessUserId: MongooseSchema.Types.ObjectId;
+  @Prop({ required: false })
+  accessUserEmail: string;
   @Prop({ required: true })
   fileId: MongooseSchema.Types.ObjectId;
   @Prop({ default: 'active', enum: ['active', 'deactivated'] })

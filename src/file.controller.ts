@@ -1,6 +1,14 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-var-requires */
-import { Controller, Get, Res, Param, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Res,
+  Param,
+  Req,
+  UseGuards,
+  HttpStatus,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FileAccess, FileAccessDocument } from './file-access.entity';
 import { Model } from 'mongoose';
@@ -15,6 +23,8 @@ const ffmpeg = require('fluent-ffmpeg');
 ffmpeg.setFfmpegPath(ffmpegPath);
 const fs = require('fs');
 const crypto = require('crypto').webcrypto;
+const jwt = require('jsonwebtoken');
+const util = require('util');
 
 async function generateSecretKeyForEncryption(
   secreteKeyString: string,
@@ -40,7 +50,6 @@ async function generateSecretKeyForEncryption(
     true,
     ['encrypt', 'decrypt'],
   );
-  console.log('derivedKey ===', derivedKey);
   return derivedKey;
 }
 
@@ -91,14 +100,30 @@ export class FileController {
     private readonly httpService: HttpService,
   ) {}
 
-  @Get('access/:accessKey/play')
+  // @UseGuards(AuthGuardJWT)
+  @Get('access/:accessKey/play/:token?')
   async playVideo(@Res() res: Response, @Param() params, @Req() req) {
-    const { accessKey } = params;
+    const { accessKey, token } = params;
+
     const accessData = await this.fileAccessModel.findOne({ accessKey });
+    if (token) {
+      const jwtVerify = util.promisify(jwt.verify);
+      const userData = await jwtVerify(token, process.env.JWT_SECRET);
+      console.log(
+        'reqeust user',
+        userData.accessUserId !== accessData.accessUserId.toString(),
+      );
+
+      if (userData.accessUserId !== accessData.accessUserId.toString()) {
+        return res.status(HttpStatus.NOT_FOUND).send();
+      }
+    }
+
     // @ts-ignore
     const ipfsMetaData = accessData.fileMetaData.sort(function (a, b) {
       return a.index - b.index;
     });
+
     const path = `${accessData.accessKey}${accessData.fileName}`;
     fs.access(path, fs.constants.F_OK, async (error) => {
       if (error) {
@@ -107,9 +132,12 @@ export class FileController {
         for (let i = 0; i < ipfsMetaData.length; i++) {
           const fileRespone = await firstValueFrom(
             this.httpService
-              .get(`http://localhost:8080/api/v0/cat/${ipfsMetaData[i].cid}`, {
-                responseType: 'arraybuffer',
-              })
+              .get(
+                `http://46.101.133.110:8080/api/v0/cat/${ipfsMetaData[i].cid}`,
+                {
+                  responseType: 'arraybuffer',
+                },
+              )
               .pipe(
                 map((response) => {
                   // console.log(response);
@@ -117,7 +145,6 @@ export class FileController {
                 }),
               ),
           );
-          console.log('fileRespone ====', fileRespone);
           const decryptedData = await decryptedSecretKeyAndFile(
             accessData.data,
             accessData.secretKey,
@@ -126,7 +153,6 @@ export class FileController {
             fileRespone,
             accessData.salt,
           );
-          console.log('decryptedData ====', decryptedData);
 
           writableStream.write(Buffer.from(decryptedData));
         }
@@ -196,51 +222,63 @@ export class FileController {
     });
   }
 
-  @Get('access/:accessKey')
+  @Get('access/:accessKey/:token?')
   async getAcessFile(@Res() res: Response, @Param() params, @Req() req) {
-    const { accessKey } = params;
-    const accessData = await this.fileAccessModel.findOne({ accessKey });
-    // @ts-ignore
-    const ipfsMetaData = accessData.fileMetaData.sort(function (a, b) {
-      return a.index - b.index;
-    });
+    try {
+      const { accessKey, token } = params;
+      const accessData = await this.fileAccessModel.findOne({ accessKey });
+      if (token) {
+        const jwtVerify = util.promisify(jwt.verify);
+        const userData = await jwtVerify(token, process.env.JWT_SECRET);
+        console.log('reqeust user', userData.accessUserId);
 
-    console.log('ipfsMetaData ====', ipfsMetaData);
+        if (userData.accessUserId !== accessData.accessUserId.toString())
+          return res.status(HttpStatus.NOT_FOUND).send();
+      }
 
-    res.set({
-      'Content-Type': 'application/octet-stream',
-      'Content-Disposition': `filename="${accessData.fileName}"`,
-    });
-    const readableStream = new Readable();
-    readableStream._read = () => {};
-    readableStream.pipe(res);
+      // @ts-ignore
+      const ipfsMetaData = accessData.fileMetaData.sort(function (a, b) {
+        return a.index - b.index;
+      });
 
-    for (let i = 0; i < ipfsMetaData.length; i++) {
-      const fileRespone = await firstValueFrom(
-        this.httpService
-          .get(`http://localhost:8080/api/v0/cat/${ipfsMetaData[i].cid}`, {
-            responseType: 'arraybuffer',
-          })
-          .pipe(
-            map((response) => {
-              // console.log(response);
-              return response.data;
-            }),
-          ),
-      );
-      console.log('fileRespone ====', fileRespone);
-      const decryptedData = await decryptedSecretKeyAndFile(
-        accessData.data,
-        accessData.secretKey,
-        accessData.accessKey,
-        accessData.iv,
-        fileRespone,
-        accessData.salt,
-      );
-      console.log('decryptedData ====', decryptedData);
+      res.set({
+        'Content-Type': 'application/octet-stream',
+        'Content-Disposition': `filename="${accessData.fileName}"`,
+      });
+      const readableStream = new Readable();
+      readableStream._read = () => {};
+      readableStream.pipe(res);
 
-      readableStream.push(Buffer.from(decryptedData));
+      for (let i = 0; i < ipfsMetaData.length; i++) {
+        const fileRespone = await firstValueFrom(
+          this.httpService
+            .get(
+              `http://46.101.133.110:8080/api/v0/cat/${ipfsMetaData[i].cid}`,
+              {
+                responseType: 'arraybuffer',
+              },
+            )
+            .pipe(
+              map((response) => {
+                // console.log(response);
+                return response.data;
+              }),
+            ),
+        );
+        const decryptedData = await decryptedSecretKeyAndFile(
+          accessData.data,
+          accessData.secretKey,
+          accessData.accessKey,
+          accessData.iv,
+          fileRespone,
+          accessData.salt,
+        );
+
+        readableStream.push(Buffer.from(decryptedData));
+      }
+      readableStream.push(null);
+    } catch (error) {
+      return res.status(HttpStatus.NOT_FOUND).send();
     }
-    readableStream.push(null);
   }
 }

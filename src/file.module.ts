@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { FileController } from './file.controller';
 import { AppService } from './file.service';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -17,4 +17,8 @@ import { HttpModule } from '@nestjs/axios';
   controllers: [FileController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule {
+  // configure(consumer: MiddlewareConsumer) {
+  //   consumer.apply(AuthMiddleware).forRoutes('*');
+  // }
+}
