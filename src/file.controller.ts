@@ -235,10 +235,10 @@ export class FileController {
 
         console.log(
           'reqeust user condition',
-          userData.accessUserId !== accessData.accessUserId.toString(),
+          userData.accessUserEmail !== accessData.accessUserEmail,
         );
 
-        if (userData.accessUserId !== accessData.accessUserId.toString())
+        if (userData.accessUserEmail !== accessData.accessUserEmail)
           return res.status(HttpStatus.NOT_FOUND).send();
       }
 
