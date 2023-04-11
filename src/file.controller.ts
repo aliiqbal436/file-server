@@ -277,7 +277,7 @@ export class FileController {
       }
       readableStream.push(null);
     } catch (error) {
-      console.log('error =======, error')
+      console.log('error =======', error);
       return res.status(HttpStatus.NOT_FOUND).send();
     }
   }
