@@ -111,10 +111,10 @@ export class FileController {
       const userData = await jwtVerify(token, process.env.JWT_SECRET);
       console.log(
         'reqeust user',
-        userData.accessUserId !== accessData.accessUserId.toString(),
+        userData.accessUserEmail !== accessData.accessUserEmail.toString(),
       );
 
-      if (userData.accessUserId !== accessData.accessUserId.toString()) {
+      if (userData.accessUserEmail !== accessData.accessUserEmail.toString()) {
         return res.status(HttpStatus.NOT_FOUND).send();
       }
     }
@@ -230,7 +230,13 @@ export class FileController {
       if (token) {
         const jwtVerify = util.promisify(jwt.verify);
         const userData = await jwtVerify(token, process.env.JWT_SECRET);
-        console.log('reqeust user', userData.accessUserId);
+        console.log('reqeust user', userData);
+        console.log('accessData user', accessData);
+
+        console.log(
+          'reqeust user condition',
+          userData.accessUserId !== accessData.accessUserId.toString(),
+        );
 
         if (userData.accessUserId !== accessData.accessUserId.toString())
           return res.status(HttpStatus.NOT_FOUND).send();
