@@ -1,14 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-var-requires */
-import {
-  Controller,
-  Get,
-  Res,
-  Param,
-  Req,
-  UseGuards,
-  HttpStatus,
-} from '@nestjs/common';
+import { Controller, Get, Res, Param, Req, HttpStatus } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FileAccess, FileAccessDocument } from './file-access.entity';
 import { Model } from 'mongoose';
@@ -100,12 +92,14 @@ export class FileController {
     private readonly httpService: HttpService,
   ) {}
 
-  // @UseGuards(AuthGuardJWT)
   @Get('access/:accessKey/play/:token?')
   async playVideo(@Res() res: Response, @Param() params, @Req() req) {
     const { accessKey, token } = params;
 
     const accessData = await this.fileAccessModel.findOne({ accessKey });
+    if (!token && accessData.accessUserId) {
+      return res.status(HttpStatus.NOT_FOUND).send();
+    }
     if (token) {
       const jwtVerify = util.promisify(jwt.verify);
       const userData = await jwtVerify(token, process.env.JWT_SECRET);
@@ -114,11 +108,26 @@ export class FileController {
         userData.accessUserEmail !== accessData.accessUserEmail.toString(),
       );
 
+      if (userData.tokenSalt !== accessData.tokenSalt) {
+        return res.status(HttpStatus.NOT_FOUND).send();
+      }
+
       if (userData.accessUserEmail !== accessData.accessUserEmail.toString()) {
         return res.status(HttpStatus.NOT_FOUND).send();
       }
     }
-
+    // TODO: add node authendication token.
+    await firstValueFrom(
+      this.httpService
+        .post(
+          `${process.env.API_SERVER_URL}/file/access/change/token-salt/${accessData._id}`,
+        )
+        .pipe(
+          map((response) => {
+            return response.data;
+          }),
+        ),
+    );
     // @ts-ignore
     const ipfsMetaData = accessData.fileMetaData.sort(function (a, b) {
       return a.index - b.index;
@@ -140,7 +149,6 @@ export class FileController {
               )
               .pipe(
                 map((response) => {
-                  // console.log(response);
                   return response.data;
                 }),
               ),
@@ -184,9 +192,6 @@ export class FileController {
             res.writeHead(200, head);
             const fileReadStream = fs.createReadStream(path);
             fileReadStream.pipe(res);
-
-            // fileReadStream.destroy();
-            // fs.unlinkSync(path);
           }
         });
       } else {
@@ -216,25 +221,40 @@ export class FileController {
           res.writeHead(200, head);
           const fileReadStream = fs.createReadStream(path);
           fileReadStream.pipe(res);
-          // fileReadStream.destroy();
         }
       }
     });
   }
 
   @Get('access/:accessKey/:token?')
-  async getAcessFile(@Res() res: Response, @Param() params, @Req() req) {
+  async getAcessFile(@Res() res: Response, @Param() params) {
     try {
       const { accessKey, token } = params;
       const accessData = await this.fileAccessModel.findOne({ accessKey });
+      if (!token && accessData.accessUserId) {
+        return res.status(HttpStatus.NOT_FOUND).send();
+      }
       if (token) {
         const jwtVerify = util.promisify(jwt.verify);
         const userData = await jwtVerify(token, process.env.JWT_SECRET);
-
+        if (userData.tokenSalt !== accessData.tokenSalt) {
+          return res.status(HttpStatus.NOT_FOUND).send();
+        }
         if (userData.accessUserEmail !== accessData.accessUserEmail)
           return res.status(HttpStatus.NOT_FOUND).send();
       }
 
+      await firstValueFrom(
+        this.httpService
+          .post(
+            `${process.env.API_SERVER_URL}/file/access/change/token-salt/${accessData._id}`,
+          )
+          .pipe(
+            map((response) => {
+              return response.data;
+            }),
+          ),
+      );
       // @ts-ignore
       const ipfsMetaData = accessData.fileMetaData.sort(function (a, b) {
         return a.index - b.index;
@@ -264,6 +284,7 @@ export class FileController {
               }),
             ),
         );
+
         const decryptedData = await decryptedSecretKeyAndFile(
           accessData.data,
           accessData.secretKey,
@@ -277,7 +298,6 @@ export class FileController {
       }
       readableStream.push(null);
     } catch (error) {
-      console.log('error =======', error);
       return res.status(HttpStatus.NOT_FOUND).send();
     }
   }
