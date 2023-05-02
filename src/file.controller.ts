@@ -1,6 +1,14 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-var-requires */
-import { Controller, Get, Res, Param, Req, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Res,
+  Param,
+  Req,
+  HttpStatus,
+  Post,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FileAccess, FileAccessDocument } from './file-access.entity';
 import { Model } from 'mongoose';
@@ -116,85 +124,43 @@ export class FileController {
         return res.status(HttpStatus.NOT_FOUND).send();
       }
     }
-    // TODO: add node authendication token.
-    await firstValueFrom(
-      this.httpService
-        .post(
-          `${process.env.API_SERVER_URL}/file/access/change/token-salt/${accessData._id}`,
-        )
-        .pipe(
-          map((response) => {
-            return response.data;
-          }),
-        ),
-    );
     // @ts-ignore
     const ipfsMetaData = accessData.fileMetaData.sort(function (a, b) {
       return a.index - b.index;
     });
 
-    const path = `${accessData.accessKey}${accessData.fileName}`;
-    fs.access(path, fs.constants.F_OK, async (error) => {
-      if (error) {
-        const writableStream = fs.createWriteStream(path);
+    const path = `videos/${accessData.accessKey}${accessData.fileName}`;
+    if (!fs.existsSync(path)) {
+      const writableStream = fs.createWriteStream(path);
 
-        for (let i = 0; i < ipfsMetaData.length; i++) {
-          const fileRespone = await firstValueFrom(
-            this.httpService
-              .get(
-                `http://46.101.133.110:8080/api/v0/cat/${ipfsMetaData[i].cid}`,
-                {
-                  responseType: 'arraybuffer',
-                },
-              )
-              .pipe(
-                map((response) => {
-                  return response.data;
-                }),
-              ),
-          );
-          const decryptedData = await decryptedSecretKeyAndFile(
-            accessData.data,
-            accessData.secretKey,
-            accessData.accessKey,
-            accessData.iv,
-            fileRespone,
-            accessData.salt,
-          );
+      for (let i = 0; i < ipfsMetaData.length; i++) {
+        const fileRespone = await firstValueFrom(
+          this.httpService
+            .get(
+              `http://46.101.133.110:8080/api/v0/cat/${ipfsMetaData[i].cid}`,
+              {
+                responseType: 'arraybuffer',
+              },
+            )
+            .pipe(
+              map((response) => {
+                return response.data;
+              }),
+            ),
+        );
+        const decryptedData = await decryptedSecretKeyAndFile(
+          accessData.data,
+          accessData.secretKey,
+          accessData.accessKey,
+          accessData.iv,
+          fileRespone,
+          accessData.salt,
+        );
 
-          writableStream.write(Buffer.from(decryptedData));
-        }
-        writableStream.end();
-        writableStream.on('finish', () => {
-          const stat = fs.statSync(path);
-          const fileSize = stat.size;
-          const range = req.headers.range;
-
-          if (range) {
-            const parts = range.replace(/bytes=/, '').split('-');
-            const start = parseInt(parts[0], 10);
-            const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
-            const chunksize = end - start + 1;
-            const file = fs.createReadStream(path, { start, end });
-            const head = {
-              'Content-Range': `bytes ${start}-${end}/${fileSize}`,
-              'Accept-Ranges': 'bytes',
-              'Content-Length': chunksize,
-              'Content-Type': 'video/mp4',
-            };
-            res.writeHead(206, head);
-            file.pipe(res);
-          } else {
-            const head = {
-              'Content-Length': fileSize,
-              'Content-Type': 'video/mp4',
-            };
-            res.writeHead(200, head);
-            const fileReadStream = fs.createReadStream(path);
-            fileReadStream.pipe(res);
-          }
-        });
-      } else {
+        writableStream.write(Buffer.from(decryptedData));
+      }
+      writableStream.end();
+      writableStream.on('finish', () => {
         const stat = fs.statSync(path);
         const fileSize = stat.size;
         const range = req.headers.range;
@@ -212,6 +178,22 @@ export class FileController {
             'Content-Type': 'video/mp4',
           };
           res.writeHead(206, head);
+          file.on('end', () => {
+            fs.unlink(path, async (error) => {
+              // TODO: add node authendication token.
+              await firstValueFrom(
+                this.httpService
+                  .post(
+                    `${process.env.API_SERVER_URL}/file/access/change/token-salt/${accessData._id}`,
+                  )
+                  .pipe(
+                    map((response) => {
+                      return response.data;
+                    }),
+                  ),
+              );
+            });
+          });
           file.pipe(res);
         } else {
           const head = {
@@ -220,10 +202,88 @@ export class FileController {
           };
           res.writeHead(200, head);
           const fileReadStream = fs.createReadStream(path);
+          fileReadStream.on('end', () => {
+            fs.unlink(path, async (error) => {
+              // TODO: add node authendication token.
+              await firstValueFrom(
+                this.httpService
+                  .post(
+                    `${process.env.API_SERVER_URL}/file/access/change/token-salt/${accessData._id}`,
+                  )
+                  .pipe(
+                    map((response) => {
+                      return response.data;
+                    }),
+                  ),
+              );
+            });
+          });
           fileReadStream.pipe(res);
         }
+      });
+    } else {
+      const stat = fs.statSync(path);
+      const fileSize = stat.size;
+      const range = req.headers.range;
+
+      if (range) {
+        const parts = range.replace(/bytes=/, '').split('-');
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+        const chunksize = end - start + 1;
+        const file = fs.createReadStream(path, { start, end });
+        const head = {
+          'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+          'Accept-Ranges': 'bytes',
+          'Content-Length': chunksize,
+          'Content-Type': 'video/mp4',
+        };
+        res.writeHead(206, head);
+        file.on('end', () => {
+          fs.unlink(path, async (error) => {
+            console.log(error);
+            // TODO: add node authendication token.
+            await firstValueFrom(
+              this.httpService
+                .post(
+                  `${process.env.API_SERVER_URL}/file/access/change/token-salt/${accessData._id}`,
+                )
+                .pipe(
+                  map((response) => {
+                    return response.data;
+                  }),
+                ),
+            );
+          });
+        });
+        file.pipe(res);
+      } else {
+        const head = {
+          'Content-Length': fileSize,
+          'Content-Type': 'video/mp4',
+        };
+        res.writeHead(200, head);
+        const fileReadStream = fs.createReadStream(path);
+        fileReadStream.on('end', () => {
+          fs.unlink(path, async (error) => {
+            console.log(error);
+            // TODO: add node authendication token.
+            await firstValueFrom(
+              this.httpService
+                .post(
+                  `${process.env.API_SERVER_URL}/file/access/change/token-salt/${accessData._id}`,
+                )
+                .pipe(
+                  map((response) => {
+                    return response.data;
+                  }),
+                ),
+            );
+          });
+        });
+        fileReadStream.pipe(res);
       }
-    });
+    }
   }
 
   @Get('access/:accessKey/:token?')
@@ -266,7 +326,7 @@ export class FileController {
       });
       const readableStream = new Readable();
       readableStream._read = () => {};
-      readableStream.pipe(res);
+      readableStream.pipe(res).on;
 
       for (let i = 0; i < ipfsMetaData.length; i++) {
         const fileRespone = await firstValueFrom(
@@ -298,6 +358,7 @@ export class FileController {
       }
       readableStream.push(null);
     } catch (error) {
+      console.log('error ===', error);
       return res.status(HttpStatus.NOT_FOUND).send();
     }
   }
