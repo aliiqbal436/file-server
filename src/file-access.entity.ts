@@ -5,12 +5,20 @@ export type FileAccessDocument = FileAccess & Document;
 export class FileAccess {
   @Prop({ required: true })
   userId: MongooseSchema.Types.ObjectId;
+  @Prop({ required: false })
+  accessUserId: MongooseSchema.Types.ObjectId;
+  @Prop({ required: false })
+  accessUserEmail: string;
+  @Prop({ required: false })
+  accessUserAvatar: string;
   @Prop({ required: true })
   fileId: MongooseSchema.Types.ObjectId;
   @Prop({ default: 'active', enum: ['active', 'deactivated'] })
   status: string;
   @Prop({ required: true })
   fileName: string;
+  @Prop({ required: true })
+  fileSize: number;
   @Prop({ required: true })
   fileType: string;
   @Prop({ required: true })
@@ -19,6 +27,8 @@ export class FileAccess {
   secretKey: string;
   @Prop({ required: true })
   accessKey: string;
+  @Prop({ required: true })
+  tokenSalt: string;
   @Prop({ required: true })
   fileMetaData: MongooseSchema.Types.Mixed;
   @Prop({ required: true })

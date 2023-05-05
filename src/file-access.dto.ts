@@ -1,10 +1,29 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUrl,
+} from 'class-validator';
 
 export class FileAccessDto {
   @IsString()
   @IsNotEmpty()
   userId: string;
+
+  @IsString()
+  @IsOptional()
+  accessUserId: string;
+
+  @IsEmail()
+  @IsOptional()
+  accessUserEmail: string;
+
+  @IsUrl()
+  @IsOptional()
+  accessUserAvatar: string;
 
   @IsString()
   @IsNotEmpty()
@@ -21,6 +40,10 @@ export class FileAccessDto {
   @IsString()
   @IsNotEmpty()
   fileType: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  fileSize: number;
 
   @IsNotEmpty()
   data: string;
@@ -41,17 +64,8 @@ export class FileAccessDto {
   @IsNotEmpty()
   @IsString()
   salt: string;
+
+  @IsOptional()
+  @IsString()
+  tokenSalt: string;
 }
-// export class UpdateLinkDto {
-//   @IsString()
-//   @IsNotEmpty()
-//   status: string;
-
-//   @IsString()
-//   @IsNotEmpty()
-//   fileType: string;
-
-//   @IsString()
-//   @IsOptional()
-//   data: string;
-// }

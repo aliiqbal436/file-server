@@ -15,6 +15,6 @@ async function bootstrap() {
     httpsOptions: server,
   } as NestApplicationOptions);
 
-  await app.listen(3009);
+  await app.listen(process.env.APP_PORT);
 }
 bootstrap();
