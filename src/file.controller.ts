@@ -104,26 +104,21 @@ export class FileController {
   async playVideo(@Res() res: Response, @Param() params, @Req() req) {
     const { accessKey, token } = params;
 
-    const accessData = await this.fileAccessModel.findOne({ accessKey });
-    if (!token && accessData.accessUserId) {
-      return res.status(HttpStatus.NOT_FOUND).send();
-    }
-    if (token) {
-      const jwtVerify = util.promisify(jwt.verify);
-      const userData = await jwtVerify(token, process.env.JWT_SECRET);
-      console.log(
-        'reqeust user',
-        userData.accessUserEmail !== accessData.accessUserEmail.toString(),
-      );
+    const accessDataResponse = await firstValueFrom(
+      this.httpService
+        .post(`${process.env.API_SERVER_URL}/file/access/verify-token`, {
+          accessKey,
+          token,
+        })
+        .pipe(
+          map((response) => {
+            return response.data;
+          }),
+        ),
+    );
 
-      if (userData.tokenSalt !== accessData.tokenSalt) {
-        return res.status(HttpStatus.NOT_FOUND).send();
-      }
+    const accessData = accessDataResponse?.data;
 
-      if (userData.accessUserEmail !== accessData.accessUserEmail.toString()) {
-        return res.status(HttpStatus.NOT_FOUND).send();
-      }
-    }
     // @ts-ignore
     const ipfsMetaData = accessData.fileMetaData.sort(function (a, b) {
       return a.index - b.index;
@@ -290,19 +285,21 @@ export class FileController {
   async getAcessFile(@Res() res: Response, @Param() params) {
     try {
       const { accessKey, token } = params;
-      const accessData = await this.fileAccessModel.findOne({ accessKey });
-      if (!token && accessData.accessUserId) {
-        return res.status(HttpStatus.NOT_FOUND).send();
-      }
-      if (token) {
-        const jwtVerify = util.promisify(jwt.verify);
-        const userData = await jwtVerify(token, process.env.JWT_SECRET);
-        if (userData.tokenSalt !== accessData.tokenSalt) {
-          return res.status(HttpStatus.NOT_FOUND).send();
-        }
-        if (userData.accessUserEmail !== accessData.accessUserEmail)
-          return res.status(HttpStatus.NOT_FOUND).send();
-      }
+
+      const accessDataResponse = await firstValueFrom(
+        this.httpService
+          .post(`${process.env.API_SERVER_URL}/file/access/verify-token`, {
+            accessKey,
+            token,
+          })
+          .pipe(
+            map((response) => {
+              return response.data;
+            }),
+          ),
+      );
+
+      const accessData = accessDataResponse?.data;
 
       await firstValueFrom(
         this.httpService

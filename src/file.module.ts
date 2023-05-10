@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 import { FileAccessSchema, FileAccess } from './file-access.entity';
 import { HttpModule } from '@nestjs/axios';
+import { JwtModule } from '@nestjs/jwt';
 import { ScheduleModule } from '@nestjs/schedule';
 import { VideoService } from './video.service';
 
@@ -17,6 +18,10 @@ import { VideoService } from './video.service';
     MongooseModule.forFeature([
       { name: FileAccess.name, schema: FileAccessSchema },
     ]),
+    JwtModule.register({
+      global: true,
+      secret: process.env.JWT_SECRET,
+    }),
   ],
   controllers: [FileController],
   providers: [AppService, VideoService],
