@@ -6,13 +6,13 @@ import { HttpsOptions } from '@nestjs/common/interfaces/external/https-options.i
 import { NestApplicationOptions } from '@nestjs/common';
 
 async function bootstrap() {
-  const httpsOptions: HttpsOptions = {
-    key: fs.readFileSync(process.env.CERTKEYPATH),
-    cert: fs.readFileSync(process.env.CERTCRTPATH),
-  };
-  const server = https.createServer(httpsOptions);
+  // const httpsOptions: HttpsOptions = {
+  //   key: fs.readFileSync(process.env.CERTKEYPATH),
+  //   cert: fs.readFileSync(process.env.CERTCRTPATH),
+  // };
+  // const server = https.createServer(httpsOptions);
   const app = await NestFactory.create(AppModule, {
-    httpsOptions: server,
+    // httpsOptions: server,
   } as NestApplicationOptions);
 
   await app.listen(process.env.APP_PORT);
