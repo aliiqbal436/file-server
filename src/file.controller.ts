@@ -318,7 +318,7 @@ export class FileController {
       });
 
       res.set({
-        'Content-Type': 'application/octet-stream',
+        'Content-Type': accessData?.fileType,
         'Content-Disposition': `filename="${accessData.fileName}"`,
       });
       const readableStream = new Readable();
