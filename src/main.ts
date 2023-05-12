@@ -11,13 +11,13 @@ async function bootstrap() {
   //   origin: '*',
   //   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   // };
-  const httpsOptions: HttpsOptions = {
-    key: fs.readFileSync(process.env.CERTKEYPATH),
-    cert: fs.readFileSync(process.env.CERTCRTPATH),
-  };
-  const server = https.createServer(httpsOptions);
+  // const httpsOptions: HttpsOptions = {
+  //   key: fs.readFileSync(process.env.CERTKEYPATH),
+  //   cert: fs.readFileSync(process.env.CERTCRTPATH),
+  // };
+  // const server = https.createServer(httpsOptions);
   const app = await NestFactory.create(AppModule, {
-    httpsOptions: server,
+    // httpsOptions: server,
     // cors: true,
   } as NestApplicationOptions);
 
