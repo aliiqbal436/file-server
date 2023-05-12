@@ -281,7 +281,7 @@ export class FileController {
     }
   }
 
-  @Get('access/:accessKey/:token?/:download')
+  @Get('access/:accessKey/:token?/:download?')
   async getAcessFile(@Res() res: Response, @Param() params) {
     try {
       const { accessKey, token, download } = params;
