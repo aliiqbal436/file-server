@@ -281,10 +281,10 @@ export class FileController {
     }
   }
 
-  @Get('access/:accessKey/:token?')
+  @Get('access/:accessKey/:token?/:download')
   async getAcessFile(@Res() res: Response, @Param() params) {
     try {
-      const { accessKey, token } = params;
+      const { accessKey, token, download } = params;
 
       const accessDataResponse = await firstValueFrom(
         this.httpService
@@ -316,9 +316,13 @@ export class FileController {
       const ipfsMetaData = accessData.fileMetaData.sort(function (a, b) {
         return a.index - b.index;
       });
+      let contentType = accessData?.fileType;
+      if (download) {
+        contentType = 'application/octet-stream';
+      }
 
       res.set({
-        'Content-Type': accessData?.fileType,
+        'Content-Type': contentType,
         'Content-Disposition': `filename="${accessData.fileName}"`,
       });
       const readableStream = new Readable();
