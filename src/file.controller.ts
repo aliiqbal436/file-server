@@ -281,10 +281,10 @@ export class FileController {
     }
   }
 
-  @Get('access/:accessKey/:token?/:download?')
+  @Get('access/:accessKey/:token?')
   async getAcessFile(@Res() res: Response, @Param() params) {
     try {
-      const { accessKey, token, download } = params;
+      const { accessKey, token } = params;
 
       const accessDataResponse = await firstValueFrom(
         this.httpService
@@ -316,13 +316,96 @@ export class FileController {
       const ipfsMetaData = accessData.fileMetaData.sort(function (a, b) {
         return a.index - b.index;
       });
-      let contentType = accessData?.fileType;
-      if (download) {
-        contentType = 'application/octet-stream';
-      }
+      // let contentType = accessData?.fileType;
+      // if (download) {
+      //   contentType = 'application/octet-stream';
+      // }
 
       res.set({
-        'Content-Type': contentType,
+        'Content-Type': accessData?.fileType,
+        'Content-Disposition': `filename="${accessData.fileName}"`,
+      });
+      const readableStream = new Readable();
+      readableStream._read = () => {};
+      readableStream.pipe(res).on;
+
+      for (let i = 0; i < ipfsMetaData.length; i++) {
+        const fileRespone = await firstValueFrom(
+          this.httpService
+            .get(
+              `http://46.101.133.110:8080/api/v0/cat/${ipfsMetaData[i].cid}`,
+              {
+                responseType: 'arraybuffer',
+              },
+            )
+            .pipe(
+              map((response) => {
+                // console.log(response);
+                return response.data;
+              }),
+            ),
+        );
+
+        const decryptedData = await decryptedSecretKeyAndFile(
+          accessData.data,
+          accessData.secretKey,
+          accessData.accessKey,
+          accessData.iv,
+          fileRespone,
+          accessData.salt,
+        );
+
+        readableStream.push(Buffer.from(decryptedData));
+      }
+      readableStream.push(null);
+    } catch (error) {
+      console.log('error ===', error);
+      return res.status(HttpStatus.NOT_FOUND).send();
+    }
+  }
+
+  @Get('download/:accessKey/:token?')
+  async downloadFile(@Res() res: Response, @Param() params) {
+    try {
+      const { accessKey, token } = params;
+
+      const accessDataResponse = await firstValueFrom(
+        this.httpService
+          .post(`${process.env.API_SERVER_URL}/file/access/verify-token`, {
+            accessKey,
+            token,
+          })
+          .pipe(
+            map((response) => {
+              return response.data;
+            }),
+          ),
+      );
+
+      const accessData = accessDataResponse?.data;
+
+      await firstValueFrom(
+        this.httpService
+          .post(
+            `${process.env.API_SERVER_URL}/file/access/change/token-salt/${accessData._id}`,
+          )
+          .pipe(
+            map((response) => {
+              return response.data;
+            }),
+          ),
+      );
+      // @ts-ignore
+      const ipfsMetaData = accessData.fileMetaData.sort(function (a, b) {
+        return a.index - b.index;
+      });
+      // let contentType = accessData?.fileType;
+      // if (download) {
+      //   contentType = 'application/octet-stream';
+      // }
+
+      res.set({
+        'Content-Type': 'application/octet-stream',
         'Content-Disposition': `filename="${accessData.fileName}"`,
       });
       const readableStream = new Readable();
