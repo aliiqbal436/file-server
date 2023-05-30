@@ -176,17 +176,17 @@ export class FileController {
           file.on('end', () => {
             fs.unlink(path, async (error) => {
               // TODO: add node authendication token.
-              await firstValueFrom(
-                this.httpService
-                  .post(
-                    `${process.env.API_SERVER_URL}/file/access/change/token-salt/${accessData._id}`,
-                  )
-                  .pipe(
-                    map((response) => {
-                      return response.data;
-                    }),
-                  ),
-              );
+              // await firstValueFrom(
+              //   this.httpService
+              //     .post(
+              //       `${process.env.API_SERVER_URL}/file/access/change/token-salt/${accessData._id}`,
+              //     )
+              //     .pipe(
+              //       map((response) => {
+              //         return response.data;
+              //       }),
+              //     ),
+              // );
             });
           });
           file.pipe(res);
@@ -198,20 +198,20 @@ export class FileController {
           res.writeHead(200, head);
           const fileReadStream = fs.createReadStream(path);
           fileReadStream.on('end', () => {
-            fs.unlink(path, async (error) => {
-              // TODO: add node authendication token.
-              await firstValueFrom(
-                this.httpService
-                  .post(
-                    `${process.env.API_SERVER_URL}/file/access/change/token-salt/${accessData._id}`,
-                  )
-                  .pipe(
-                    map((response) => {
-                      return response.data;
-                    }),
-                  ),
-              );
-            });
+            // fs.unlink(path, async (error) => {
+            //   // TODO: add node authendication token.
+            //   await firstValueFrom(
+            //     this.httpService
+            //       .post(
+            //         `${process.env.API_SERVER_URL}/file/access/change/token-salt/${accessData._id}`,
+            //       )
+            //       .pipe(
+            //         map((response) => {
+            //           return response.data;
+            //         }),
+            //       ),
+            //   );
+            // });
           });
           fileReadStream.pipe(res);
         }
@@ -238,17 +238,17 @@ export class FileController {
           fs.unlink(path, async (error) => {
             console.log(error);
             // TODO: add node authendication token.
-            await firstValueFrom(
-              this.httpService
-                .post(
-                  `${process.env.API_SERVER_URL}/file/access/change/token-salt/${accessData._id}`,
-                )
-                .pipe(
-                  map((response) => {
-                    return response.data;
-                  }),
-                ),
-            );
+            // await firstValueFrom(
+            //   this.httpService
+            //     .post(
+            //       `${process.env.API_SERVER_URL}/file/access/change/token-salt/${accessData._id}`,
+            //     )
+            //     .pipe(
+            //       map((response) => {
+            //         return response.data;
+            //       }),
+            //     ),
+            // );
           });
         });
         file.pipe(res);
@@ -263,17 +263,17 @@ export class FileController {
           fs.unlink(path, async (error) => {
             console.log(error);
             // TODO: add node authendication token.
-            await firstValueFrom(
-              this.httpService
-                .post(
-                  `${process.env.API_SERVER_URL}/file/access/change/token-salt/${accessData._id}`,
-                )
-                .pipe(
-                  map((response) => {
-                    return response.data;
-                  }),
-                ),
-            );
+            // await firstValueFrom(
+            //   this.httpService
+            //     .post(
+            //       `${process.env.API_SERVER_URL}/file/access/change/token-salt/${accessData._id}`,
+            //     )
+            //     .pipe(
+            //       map((response) => {
+            //         return response.data;
+            //       }),
+            //     ),
+            // );
           });
         });
         fileReadStream.pipe(res);
