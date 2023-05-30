@@ -13,6 +13,7 @@ async function bootstrap() {
   // const server = https.createServer(httpsOptions);
   const app = await NestFactory.create(AppModule, {
     // httpsOptions: server,
+    cors: true,
   } as NestApplicationOptions);
 
   await app.listen(process.env.APP_PORT);
