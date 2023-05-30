@@ -94,15 +94,15 @@ const decryptedSecretKeyAndFile = async (
 
 @Controller('file')
 export class FileController {
-  constructor(
-    @InjectModel(FileAccess.name)
-    private fileAccessModel: Model<FileAccessDocument>,
-    private readonly httpService: HttpService,
-  ) {}
+  constructor(private readonly httpService: HttpService) {
+    console.log('yahhhh im in controllerrrrr');
+  }
 
   @Get('access/:accessKey/play/:token?')
   async playVideo(@Res() res: Response, @Param() params, @Req() req) {
     const { accessKey, token } = params;
+    console.log('access key ===', accessKey);
+    console.log('token ===', token);
 
     const accessDataResponse = await firstValueFrom(
       this.httpService
@@ -116,7 +116,7 @@ export class FileController {
           }),
         ),
     );
-
+    console.log('accessDataResponse =====', accessDataResponse);
     const accessData = accessDataResponse?.data;
 
     // @ts-ignore
