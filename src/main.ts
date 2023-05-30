@@ -11,10 +11,7 @@ async function bootstrap() {
   //   cert: fs.readFileSync(process.env.CERTCRTPATH),
   // };
   // const server = https.createServer(httpsOptions);
-  const app = await NestFactory.create(AppModule, {
-    // httpsOptions: server,
-    cors: { origin: '*', preflightContinue: true  },
-  } as NestApplicationOptions);
+  const app = await NestFactory.create(AppModule);
 
   await app.listen(process.env.APP_PORT);
 }
