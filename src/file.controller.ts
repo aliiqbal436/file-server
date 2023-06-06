@@ -92,13 +92,13 @@ const decryptedSecretKeyAndFile = async (
   return encrtedData;
 };
 
-@Controller('file')
+@Controller('api/file')
 export class FileController {
   constructor(private readonly httpService: HttpService) {
     console.log('yahhhh im in controllerrrrr');
   }
 
-  @Get('access/:accessKey/play/:token?')
+  @Get('view/access/:accessKey/play/:token?')
   async playVideo(@Res() res: Response, @Param() params, @Req() req) {
     const { accessKey, token } = params;
     console.log('access key ===', accessKey);
@@ -281,7 +281,7 @@ export class FileController {
     }
   }
 
-  @Get('access/:accessKey/:token?')
+  @Get('view/access/:accessKey/:token?')
   async getAcessFile(@Res() res: Response, @Param() params) {
     try {
       const { accessKey, token } = params;
