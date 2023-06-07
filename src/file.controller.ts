@@ -101,8 +101,6 @@ export class FileController {
   @Get('view/access-play/:accessKey/:token?')
   async playVideo(@Res() res: Response, @Param() params, @Req() req) {
     const { accessKey, token } = params;
-    console.log('access key ===', accessKey);
-    console.log('token ===', token);
 
     const accessDataResponse = await firstValueFrom(
       this.httpService
@@ -116,7 +114,6 @@ export class FileController {
           }),
         ),
     );
-    console.log('accessDataResponse =====', accessDataResponse);
     const accessData = accessDataResponse?.data;
 
     // @ts-ignore
@@ -125,7 +122,6 @@ export class FileController {
     });
 
     const path = `videos/${accessData.accessKey}${accessData.fileName}`;
-    console.log('req.headers ========', req.headers);
     if (!fs.existsSync(path)) {
       const writableStream = fs.createWriteStream(path);
 
@@ -153,7 +149,7 @@ export class FileController {
           accessData.salt,
         );
 
-        writableStream.write(Buffer.from(decryptedData));
+        await writableStream.write(Buffer.from(decryptedData));
       }
       writableStream.end();
       writableStream.on('finish', () => {
