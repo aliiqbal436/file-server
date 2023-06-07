@@ -219,7 +219,10 @@ export class FileController {
       });
     } else {
       const stat = fs.statSync(path);
+      console.log('stat =====', stat);
       const fileSize = stat.size;
+      console.log('fileSize =====', fileSize);
+
       const range = req.headers.range;
 
       if (range) {
@@ -232,7 +235,7 @@ export class FileController {
 
         const file = fs.createReadStream(path, {
           start,
-          end: end < 0 ? 0 : end,
+          end,
         });
         const head = {
           'Content-Range': `bytes ${start}-${end}/${fileSize}`,
