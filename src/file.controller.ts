@@ -98,7 +98,7 @@ export class FileController {
     console.log('yahhhh im in controllerrrrr');
   }
 
-  @Get('view/access/:accessKey/play/:token?')
+  @Get('view/access-play/:accessKey/:token?')
   async playVideo(@Res() res: Response, @Param() params, @Req() req) {
     const { accessKey, token } = params;
     console.log('access key ===', accessKey);
