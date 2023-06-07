@@ -140,6 +140,8 @@ export class FileController {
               }),
             ),
         );
+        console.log('decryptedData =====', fileRespone);
+
         const decryptedData = await decryptedSecretKeyAndFile(
           accessData.data,
           accessData.secretKey,
