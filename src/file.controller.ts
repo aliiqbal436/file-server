@@ -230,7 +230,10 @@ export class FileController {
         console.log('end ====', end);
         console.log('parts ====', parts);
 
-        const file = fs.createReadStream(path, { start, end });
+        const file = fs.createReadStream(path, {
+          start,
+          end: end < 0 ? 0 : end,
+        });
         const head = {
           'Content-Range': `bytes ${start}-${end}/${fileSize}`,
           'Accept-Ranges': 'bytes',
