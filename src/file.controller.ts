@@ -148,7 +148,7 @@ export class FileController {
           fileRespone,
           accessData.salt,
         );
-
+        console.log('decryptedData =====', decryptedData);
         await writableStream.write(Buffer.from(decryptedData));
       }
       writableStream.end();
