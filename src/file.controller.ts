@@ -125,6 +125,7 @@ export class FileController {
     });
 
     const path = `videos/${accessData.accessKey}${accessData.fileName}`;
+    console.log('req.headers ========', req.headers);
     if (!fs.existsSync(path)) {
       const writableStream = fs.createWriteStream(path);
 
