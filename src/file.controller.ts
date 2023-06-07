@@ -227,6 +227,9 @@ export class FileController {
         const start = parseInt(parts[0], 10);
         const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
         const chunksize = end - start + 1;
+        console.log('end ====', end);
+        console.log('parts ====', parts);
+
         const file = fs.createReadStream(path, { start, end });
         const head = {
           'Content-Range': `bytes ${start}-${end}/${fileSize}`,
