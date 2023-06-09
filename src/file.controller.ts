@@ -92,7 +92,7 @@ const decryptedSecretKeyAndFile = async (
   return encrtedData;
 };
 
-@Controller('file')
+@Controller('api/file')
 export class FileController {
   constructor(private readonly httpService: HttpService) {
     console.log('yahhhh im in controllerrrrr');
