@@ -321,10 +321,16 @@ export class FileController {
           )
           .pipe(
             map((response) => {
+              console.log(
+                'get file httpService API_SERVER_URL ======',
+                response,
+              );
+
               return response.data;
             }),
           ),
       );
+      console.log('get file after http ======');
 
       // @ts-ignore
       const ipfsMetaData = accessData.fileMetaData.sort(function (a, b) {
@@ -334,6 +340,7 @@ export class FileController {
       // if (download) {
       //   contentType = 'application/octet-stream';
       // }
+      console.log('get file ipfsMetaData ======', ipfsMetaData);
 
       res.set({
         'Content-Type': accessData?.fileType,
@@ -360,7 +367,7 @@ export class FileController {
             ),
         );
 
-        console.log('get file fileRespone ======', fileRespone);
+        console.log('get file ipfs file looop ======', fileRespone);
 
         const decryptedData = await decryptedSecretKeyAndFile(
           accessData.data,
