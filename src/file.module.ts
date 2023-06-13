@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { FileController } from './file.controller';
-import { AppService } from './file.service';
+import { FileService } from './file.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 import { FileAccessSchema, FileAccess } from './file-access.entity';
@@ -24,6 +24,6 @@ import { VideoService } from './video.service';
     }),
   ],
   controllers: [FileController],
-  providers: [AppService, VideoService],
+  providers: [FileService, VideoService],
 })
 export class AppModule {}

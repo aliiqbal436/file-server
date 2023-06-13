@@ -9,15 +9,13 @@ import {
   HttpStatus,
   Post,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { FileAccess, FileAccessDocument } from './file-access.entity';
-import { Model } from 'mongoose';
 
 import { HttpService } from '@nestjs/axios';
 
 import type { Response } from 'express';
 import { Readable } from 'stream';
 import { firstValueFrom, map } from 'rxjs';
+import { FileService } from './file.service';
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const ffmpeg = require('fluent-ffmpeg');
 ffmpeg.setFfmpegPath(ffmpegPath);
@@ -94,7 +92,12 @@ const decryptedSecretKeyAndFile = async (
 
 @Controller('api/file')
 export class FileController {
-  constructor(private readonly httpService: HttpService) {
+  // private ipAddresses: string[];
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly fileService: FileService,
+  ) {
+    this.fileService.saveNodeOsDetails();
     console.log('yahhhh im in controllerrrrr');
   }
 
@@ -102,19 +105,34 @@ export class FileController {
   async playVideo(@Res() res: Response, @Param() params, @Req() req) {
     try {
       const { accessKey, token } = params;
+      console.log('access key ===', accessKey);
+      console.log('token ===', token);
+      const userRawResponse = fs.readFileSync(
+        'src/config/node-config.json',
+        'utf8',
+      );
+
+      const userAuthToken = JSON.parse(userRawResponse);
 
       const accessDataResponse = await firstValueFrom(
         this.httpService
-          .post(`${process.env.API_SERVER_URL}/file/access/verify-token`, {
-            accessKey,
-            token,
-          })
+          .post(
+            `${process.env.API_SERVER_URL}/file/access/verify-token`,
+            {
+              accessKey,
+              token,
+            },
+            {
+              headers: { Authorization: `Bearer ${userAuthToken?.authToken}` },
+            },
+          )
           .pipe(
             map((response) => {
               return response.data;
             }),
           ),
       );
+      console.log('accessDataResponse =====', accessDataResponse);
       const accessData = accessDataResponse?.data;
 
       // @ts-ignore
@@ -296,14 +314,30 @@ export class FileController {
   @Get('view/access/:accessKey/:token?')
   async getAcessFile(@Res() res: Response, @Param() params) {
     try {
+      const userRawResponse = fs.readFileSync(
+        'src/config/node-config.json',
+        'utf8',
+      );
+
+      const userAuthToken = JSON.parse(userRawResponse);
+      console.log(
+        'file: file.controller.ts:292 ~ FileController ~ getAcessFile ~ authToken:',
+        userAuthToken,
+      );
       const { accessKey, token } = params;
 
       const accessDataResponse = await firstValueFrom(
         this.httpService
-          .post(`${process.env.API_SERVER_URL}/file/access/verify-token`, {
-            accessKey,
-            token,
-          })
+          .post(
+            `${process.env.API_SERVER_URL}/file/access/verify-token`,
+            {
+              accessKey,
+              token,
+            },
+            {
+              headers: { Authorization: `Bearer ${userAuthToken?.authToken}` },
+            },
+          )
           .pipe(
             map((response) => {
               return response.data;
@@ -371,8 +405,12 @@ export class FileController {
       }
       readableStream.push(null);
     } catch (error) {
-      console.log('error ===', error);
-      return res.status(HttpStatus.NOT_FOUND).send();
+      console.log('error ===', error?.response?.data || error?.message);
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .send(
+          error?.response?.data || { success: false, message: error?.message },
+        );
     }
   }
 
