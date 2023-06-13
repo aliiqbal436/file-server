@@ -297,7 +297,7 @@ export class FileController {
   async getAcessFile(@Res() res: Response, @Param() params) {
     try {
       const { accessKey, token } = params;
-
+      console.log('get file accessKey ======', accessKey);
       const accessDataResponse = await firstValueFrom(
         this.httpService
           .post(`${process.env.API_SERVER_URL}/file/access/verify-token`, {
@@ -310,6 +310,7 @@ export class FileController {
             }),
           ),
       );
+      console.log('get file accessDataResponse ======', accessDataResponse);
 
       const accessData = accessDataResponse?.data;
 
@@ -324,6 +325,7 @@ export class FileController {
             }),
           ),
       );
+
       // @ts-ignore
       const ipfsMetaData = accessData.fileMetaData.sort(function (a, b) {
         return a.index - b.index;
@@ -357,6 +359,8 @@ export class FileController {
               }),
             ),
         );
+
+        console.log('get file fileRespone ======', fileRespone);
 
         const decryptedData = await decryptedSecretKeyAndFile(
           accessData.data,
