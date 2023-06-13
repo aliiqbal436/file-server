@@ -419,12 +419,25 @@ export class FileController {
     try {
       const { accessKey, token } = params;
 
+      const userRawResponse = fs.readFileSync(
+        'src/config/node-config.json',
+        'utf8',
+      );
+
+      const userAuthToken = JSON.parse(userRawResponse);
+
       const accessDataResponse = await firstValueFrom(
         this.httpService
-          .post(`${process.env.API_SERVER_URL}/file/access/verify-token`, {
-            accessKey,
-            token,
-          })
+          .post(
+            `${process.env.API_SERVER_URL}/file/access/verify-token`,
+            {
+              accessKey,
+              token,
+            },
+            {
+              headers: { Authorization: `Bearer ${userAuthToken?.authToken}` },
+            },
+          )
           .pipe(
             map((response) => {
               return response.data;
