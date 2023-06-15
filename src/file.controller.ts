@@ -107,12 +107,12 @@ export class FileController {
       const { accessKey, token } = params;
       console.log('access key ===', accessKey);
       console.log('token ===', token);
-      const userRawResponse = fs.readFileSync(
-        'src/config/node-config.json',
-        'utf8',
-      );
+      // const userRawResponse = fs.readFileSync(
+      //   'src/config/node-config.json',
+      //   'utf8',
+      // );
 
-      const userAuthToken = JSON.parse(userRawResponse);
+      // const userAuthToken = JSON.parse(userRawResponse);
 
       const accessDataResponse = await firstValueFrom(
         this.httpService
@@ -122,9 +122,9 @@ export class FileController {
               accessKey,
               token,
             },
-            {
-              headers: { Authorization: `Bearer ${userAuthToken?.authToken}` },
-            },
+            // {
+            //   headers: { Authorization: `Bearer ${userAuthToken?.authToken}` },
+            // },
           )
           .pipe(
             map((response) => {
@@ -314,16 +314,16 @@ export class FileController {
   @Get('view/access/:accessKey/:token?')
   async getAcessFile(@Res() res: Response, @Param() params) {
     try {
-      const userRawResponse = fs.readFileSync(
-        'src/config/node-config.json',
-        'utf8',
-      );
+      // const userRawResponse = fs.readFileSync(
+      //   'src/config/node-config.json',
+      //   'utf8',
+      // );
 
-      const userAuthToken = JSON.parse(userRawResponse);
-      console.log(
-        'file: file.controller.ts:292 ~ FileController ~ getAcessFile ~ authToken:',
-        userAuthToken,
-      );
+      // const userAuthToken = JSON.parse(userRawResponse);
+      // console.log(
+      //   'file: file.controller.ts:292 ~ FileController ~ getAcessFile ~ authToken:',
+      //   userAuthToken,
+      // );
       const { accessKey, token } = params;
 
       const accessDataResponse = await firstValueFrom(
@@ -334,9 +334,9 @@ export class FileController {
               accessKey,
               token,
             },
-            {
-              headers: { Authorization: `Bearer ${userAuthToken?.authToken}` },
-            },
+            // {
+            //   headers: { Authorization: `Bearer ${userAuthToken?.authToken}` },
+            // },
           )
           .pipe(
             map((response) => {
@@ -419,12 +419,12 @@ export class FileController {
     try {
       const { accessKey, token } = params;
 
-      const userRawResponse = fs.readFileSync(
-        'src/config/node-config.json',
-        'utf8',
-      );
+      // const userRawResponse = fs.readFileSync(
+      //   'src/config/node-config.json',
+      //   'utf8',
+      // );
 
-      const userAuthToken = JSON.parse(userRawResponse);
+      // const userAuthToken = JSON.parse(userRawResponse);
 
       const accessDataResponse = await firstValueFrom(
         this.httpService
@@ -434,9 +434,9 @@ export class FileController {
               accessKey,
               token,
             },
-            {
-              headers: { Authorization: `Bearer ${userAuthToken?.authToken}` },
-            },
+            // {
+            //   headers: { Authorization: `Bearer ${userAuthToken?.authToken}` },
+            // },
           )
           .pipe(
             map((response) => {
