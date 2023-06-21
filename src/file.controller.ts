@@ -325,12 +325,12 @@ export class FileController {
       //   userAuthToken,
       // );
       const { accessKey, token } = params;
+
       console.log(
         'file: file.controller.ts:328 ~ FileController ~ getAcessFile ~ accessKey, token:',
         accessKey,
         token,
       );
-
       const accessDataResponse = await firstValueFrom(
         this.httpService
           .post(
@@ -349,6 +349,7 @@ export class FileController {
             }),
           ),
       );
+
       console.log(
         'file: file.controller.ts:352 ~ FileController ~ getAcessFile ~ accessDataResponse:',
         accessDataResponse,
@@ -375,6 +376,7 @@ export class FileController {
       // if (download) {
       //   contentType = 'application/octet-stream';
       // }
+      console.log('get file ipfsMetaData ======', ipfsMetaData);
 
       res.set({
         'Content-Type': accessData?.fileType,
@@ -400,6 +402,8 @@ export class FileController {
               }),
             ),
         );
+
+        console.log('get file ipfs file looop ======', fileRespone);
 
         const decryptedData = await decryptedSecretKeyAndFile(
           accessData.data,
