@@ -325,6 +325,11 @@ export class FileController {
       //   userAuthToken,
       // );
       const { accessKey, token } = params;
+      console.log(
+        'file: file.controller.ts:328 ~ FileController ~ getAcessFile ~ accessKey, token:',
+        accessKey,
+        token,
+      );
 
       const accessDataResponse = await firstValueFrom(
         this.httpService
@@ -344,20 +349,24 @@ export class FileController {
             }),
           ),
       );
+      console.log(
+        'file: file.controller.ts:352 ~ FileController ~ getAcessFile ~ accessDataResponse:',
+        accessDataResponse,
+      );
 
       const accessData = accessDataResponse?.data;
 
-      await firstValueFrom(
-        this.httpService
-          .post(
-            `${process.env.API_SERVER_URL}/file/access/change/token-salt/${accessData._id}`,
-          )
-          .pipe(
-            map((response) => {
-              return response.data;
-            }),
-          ),
-      );
+      // await firstValueFrom(
+      //   this.httpService
+      //     .post(
+      //       `${process.env.API_SERVER_URL}/file/access/change/token-salt/${accessData._id}`,
+      //     )
+      //     .pipe(
+      //       map((response) => {
+      //         return response.data;
+      //       }),
+      //     ),
+      // );
       // @ts-ignore
       const ipfsMetaData = accessData.fileMetaData.sort(function (a, b) {
         return a.index - b.index;
@@ -447,17 +456,17 @@ export class FileController {
 
       const accessData = accessDataResponse?.data;
 
-      await firstValueFrom(
-        this.httpService
-          .post(
-            `${process.env.API_SERVER_URL}/file/access/change/token-salt/${accessData._id}`,
-          )
-          .pipe(
-            map((response) => {
-              return response.data;
-            }),
-          ),
-      );
+      // await firstValueFrom(
+      //   this.httpService
+      //     .post(
+      //       `${process.env.API_SERVER_URL}/file/access/change/token-salt/${accessData._id}`,
+      //     )
+      //     .pipe(
+      //       map((response) => {
+      //         return response.data;
+      //       }),
+      //     ),
+      // );
       // @ts-ignore
       const ipfsMetaData = accessData.fileMetaData.sort(function (a, b) {
         return a.index - b.index;
