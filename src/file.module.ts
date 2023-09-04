@@ -14,10 +14,10 @@ import { VideoService } from './video.service';
     ScheduleModule.forRoot(),
     HttpModule,
     ConfigModule.forRoot(),
-    MongooseModule.forRoot(process.env.DATABASE_URL),
-    MongooseModule.forFeature([
-      { name: FileAccess.name, schema: FileAccessSchema },
-    ]),
+    // MongooseModule.forRoot(process.env.DATABASE_URL),
+    // MongooseModule.forFeature([
+    //   { name: FileAccess.name, schema: FileAccessSchema },
+    // ]),
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET,

@@ -98,15 +98,12 @@ export class FileController {
     private readonly fileService: FileService,
   ) {
     this.fileService.saveNodeOsDetails();
-    console.log('yahhhh im in controllerrrrr');
   }
 
   @Get('view/access-play/:accessKey/:token?')
   async playVideo(@Res() res: Response, @Param() params, @Req() req) {
     try {
       const { accessKey, token } = params;
-      console.log('access key ===', accessKey);
-      console.log('token ===', token);
       // const userRawResponse = fs.readFileSync(
       //   'src/config/node-config.json',
       //   'utf8',
@@ -132,7 +129,6 @@ export class FileController {
             }),
           ),
       );
-      console.log('accessDataResponse =====', accessDataResponse);
       const accessData = accessDataResponse?.data;
 
       // @ts-ignore
@@ -159,7 +155,6 @@ export class FileController {
                 }),
               ),
           );
-          console.log('decryptedData =====', fileRespone);
 
           const decryptedData = await decryptedSecretKeyAndFile(
             accessData.data,
@@ -169,7 +164,6 @@ export class FileController {
             fileRespone,
             accessData.salt,
           );
-          console.log('decryptedData =====', decryptedData);
           await writableStream.write(Buffer.from(decryptedData));
         }
         writableStream.end();
@@ -236,9 +230,7 @@ export class FileController {
         });
       } else {
         const stat = fs.statSync(path);
-        console.log('stat =====', stat);
         const fileSize = stat.size;
-        console.log('fileSize =====', fileSize);
 
         const range = req.headers.range;
 
@@ -247,8 +239,6 @@ export class FileController {
           const start = parseInt(parts[0], 10);
           const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
           const chunksize = end - start + 1;
-          console.log('end ====', end);
-          console.log('parts ====', parts);
 
           const file = fs.createReadStream(path, {
             start,
@@ -350,11 +340,6 @@ export class FileController {
           ),
       );
 
-      console.log(
-        'file: file.controller.ts:352 ~ FileController ~ getAcessFile ~ accessDataResponse:',
-        accessDataResponse,
-      );
-
       const accessData = accessDataResponse?.data;
 
       // await firstValueFrom(
@@ -376,8 +361,6 @@ export class FileController {
       // if (download) {
       //   contentType = 'application/octet-stream';
       // }
-      console.log('get file ipfsMetaData ======', ipfsMetaData);
-
       res.set({
         'Content-Type': accessData?.fileType,
         'Content-Disposition': `filename="${accessData.fileName}"`,
@@ -402,8 +385,6 @@ export class FileController {
               }),
             ),
         );
-
-        console.log('get file ipfs file looop ======', fileRespone);
 
         const decryptedData = await decryptedSecretKeyAndFile(
           accessData.data,
@@ -491,12 +472,9 @@ export class FileController {
       for (let i = 0; i < ipfsMetaData.length; i++) {
         const fileRespone = await firstValueFrom(
           this.httpService
-            .get(
-              `http://46.101.133.110:8080/api/v0/cat/${ipfsMetaData[i].cid}`,
-              {
-                responseType: 'arraybuffer',
-              },
-            )
+            .get(`http://localhost:8080/api/v0/cat/${ipfsMetaData[i].cid}`, {
+              responseType: 'arraybuffer',
+            })
             .pipe(
               map((response) => {
                 // console.log(response);
